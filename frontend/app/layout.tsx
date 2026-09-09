@@ -1,16 +1,17 @@
 import type { Metadata } from 'next';
 import { AuthProvider } from '@/lib/auth';
+import { brand } from '@/lib/config/brand';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'LPPM Press — UPN Veteran Jakarta',
-  description: 'Sistem Informasi Pelayanan Penerbitan Buku LPPM Press UPN Veteran Jakarta',
+  title: `${brand.name} ${brand.institution}`,
+  description: brand.description,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="id" suppressHydrationWarning>
-      <body>
+      <body suppressHydrationWarning>
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>

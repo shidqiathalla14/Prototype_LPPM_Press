@@ -2,8 +2,10 @@
 
 import { FormEvent, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
+import { brand } from '@/lib/config/brand';
 import { Field, inputClass, PrimaryButton } from '@/lib/ui';
 
 export default function LoginPage() {
@@ -34,8 +36,8 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-zinc-50 p-4 dark:bg-zinc-950">
       <div className="w-full max-w-sm">
         <Link href="/" className="mb-8 flex items-center justify-center gap-2.5">
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#143823] text-sm font-bold text-[#D4E100]">LP</span>
-          <span className="text-sm font-bold text-zinc-950 dark:text-zinc-50">LPPM Press UPNVJ</span>
+          <Image src="/logo-upnvj.png" alt="Logo UPN Veteran Jakarta" width={70} height={70} className="h-[70px] w-[70px] object-contain" />
+          <span className="text-sm font-bold text-zinc-950 dark:text-zinc-50">{brand.displayName}</span>
         </Link>
         <form onSubmit={(e) => void submit(e)} className="rounded-xl border border-zinc-200 bg-white p-6 shadow-card dark:border-zinc-800 dark:bg-zinc-900">
           <h1 className="text-xl font-bold tracking-tight text-zinc-950 dark:text-zinc-50">Masuk ke Akun Anda</h1>

@@ -2,11 +2,13 @@
 
 import { ReactNode, useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   BookOpen, Home, LayoutDashboard, Library, LogOut, Menu, Moon, Settings, Sun, User as UserIcon, X,
 } from 'lucide-react';
 import { useAuth } from './auth';
+import { brand } from './config/brand';
 import { Role } from './types';
 
 const NAV: Record<Role, { href: string; label: string; icon: typeof Home }[]> = {
@@ -121,10 +123,10 @@ export function DashboardShell({ children }: { children: ReactNode }) {
   const sidebar = (
     <div className="flex h-full flex-col">
       <Link href="/dashboard" className="flex items-center gap-2.5 border-b border-zinc-200 px-5 py-4 dark:border-zinc-800">
-        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#143823] text-sm font-bold text-[#D4E100]">LP</span>
+        <Image src="/logo-upnvj.png" alt="Logo UPN Veteran Jakarta" width={32} height={32} className="h-8 w-8 object-contain" />
         <span>
-          <span className="block text-sm font-bold leading-tight text-zinc-950 dark:text-zinc-50">LPPM Press</span>
-          <span className="block text-[11px] leading-tight text-zinc-400">UPN Veteran Jakarta</span>
+          <span className="block text-sm font-bold leading-tight text-zinc-950 dark:text-zinc-50">{brand.name}</span>
+          <span className="block text-[11px] leading-tight text-zinc-400">{brand.institution}</span>
         </span>
       </Link>
       <nav className="flex-1 space-y-0.5 overflow-y-auto p-3" aria-label="Navigasi utama">
@@ -165,7 +167,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
         <button aria-label="Buka menu" onClick={() => setMobileOpen(true)} className="rounded-lg p-2 text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800">
           <Menu className="h-5 w-5" strokeWidth={1.75} />
         </button>
-        <span className="text-sm font-bold text-zinc-950 dark:text-zinc-50">LPPM Press</span>
+        <span className="text-sm font-bold text-zinc-950 dark:text-zinc-50">{brand.name}</span>
         <ThemeToggle />
       </div>
       {mobileOpen && (

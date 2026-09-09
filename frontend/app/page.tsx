@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { BookOpen, ChevronRight, LogIn, Search, UserPlus } from 'lucide-react';
 import { api } from '@/lib/api';
 import { Book, CatalogResponse } from '@/lib/types';
@@ -83,7 +84,7 @@ export default function LandingPage() {
       <header className="sticky top-0 z-40 border-b border-zinc-200 bg-white/80 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/80">
         <div className="container flex h-16 items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
-            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#143823] text-sm font-bold text-[#D4E100]">LP</span>
+            <Image src="/logo-upnvj.png" alt="Logo UPN Veteran Jakarta" width={36} height={36} className="h-9 w-9 object-contain" />
             <span>
               <span className="block text-sm font-bold leading-tight text-zinc-950 dark:text-zinc-50">LPPM Press</span>
               <span className="block text-[11px] leading-tight text-zinc-400">UPN Veteran Jakarta</span>
@@ -104,10 +105,6 @@ export default function LandingPage() {
 
       {/* Hero */}
       <section className="container py-16 text-center sm:py-24">
-        <div className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white/80 px-3 py-1 text-xs font-medium text-zinc-800 shadow-subtle backdrop-blur dark:border-zinc-800 dark:bg-zinc-900/80 dark:text-zinc-200">
-          <span className="flex h-2 w-2 rounded-full bg-[#D4E100]" />
-          <span>Layanan Resmi Penerbitan LPPM-Press UPNVJ</span>
-        </div>
         <h1 className="mx-auto mt-6 max-w-3xl text-4xl font-extrabold leading-[1.15] tracking-tight text-zinc-950 md:text-5xl dark:text-zinc-50">
           Terbitkan Buku Ilmiah Anda Bersama{' '}
           <span className="text-[#1E6F3D] dark:text-[#238636]">LPPM Press</span>{' '}
@@ -115,7 +112,7 @@ export default function LandingPage() {
         </h1>
         <p className="mx-auto mt-5 max-w-2xl text-sm leading-relaxed text-zinc-600 sm:text-base dark:text-zinc-400">
           Platform terintegrasi untuk pengajuan, penelaahan, penyuntingan, hingga penerbitan ISBN resmi
-          bagi karya ilmiah dan buku ajar sivitas akademika — transparan di setiap tahap.
+          bagi karya ilmiah dan buku ajar sivitas akademika transparan di setiap tahap.
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           <Link href="/auth/register" className="inline-flex items-center gap-2 rounded-lg bg-[#1E6F3D] px-5 py-3 text-sm font-medium text-white shadow-subtle transition-all hover:bg-[#143823] active:scale-[0.98] dark:bg-[#238636] dark:hover:bg-[#1E6F3D]">
@@ -206,7 +203,7 @@ export default function LandingPage() {
       <footer className="border-t border-zinc-200 bg-zinc-50 py-10 dark:border-zinc-800 dark:bg-zinc-900/50">
         <div className="container flex flex-col items-start justify-between gap-6 sm:flex-row">
           <div>
-            <p className="text-sm font-bold text-zinc-950 dark:text-zinc-50">LPPM Press — UPN Veteran Jakarta</p>
+            <p className="text-sm font-bold text-zinc-950 dark:text-zinc-50">LPPM Press UPN Veteran Jakarta</p>
             <p className="mt-2 max-w-sm text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
               Lembaga Penelitian dan Pengabdian kepada Masyarakat<br />
               Jl. RS Fatmawati, Pondok Labu, Cilandak, Jakarta Selatan 12450
