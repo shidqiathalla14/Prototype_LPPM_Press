@@ -82,7 +82,7 @@ export default function ManajemenBukuPage() {
     setSubmitting(true);
     try {
       await api.patch(`/payments/${payTarget.id}/verify`, approved ? { is_approved: true } : { is_approved: false, rejection_reason: rejectReason.trim() }, token);
-      setToast({ kind: 'success', message: approved ? 'Pembayaran diverifikasi — naskah masuk antre ISBN' : 'Pembayaran ditolak' });
+      setToast({ kind: 'success', message: approved ? 'Pembayaran diverifikasi. Naskah masuk antre ISBN' : 'Pembayaran ditolak' });
       setPayTarget(null); setRejectReason('');
       await load();
     } catch (e) {
@@ -179,8 +179,8 @@ export default function ManajemenBukuPage() {
                     </td>
                     <td className="px-5 py-3.5"><StatusBadge status={b.status as BookStatus} /></td>
                     <td className="px-5 py-3.5 text-xs text-zinc-500">
-                      <p>R: {b.reviewer_name || '—'}</p>
-                      <p>E: {b.editor_name || '—'}</p>
+                      <p>R: {b.reviewer_name || 'Belum ditugaskan'}</p>
+                      <p>E: {b.editor_name || 'Belum ditugaskan'}</p>
                     </td>
                     <td className="px-5 py-3.5 text-xs text-zinc-500">{formatDate(b.created_at)}</td>
                     <td className="px-5 py-3.5 text-right">
@@ -216,7 +216,7 @@ export default function ManajemenBukuPage() {
           <p className="text-xs text-zinc-500 dark:text-zinc-400">Naskah: <strong className="text-zinc-800 dark:text-zinc-200">{assignTarget?.title}</strong></p>
           <Field label={`Pilih ${assignKind === 'reviewer' ? 'Reviewer' : 'Editor'}`}>
             <select value={selectedUser} onChange={(e) => setSelectedUser(e.target.value)} className={inputClass}>
-              <option value="">— Pilih —</option>
+              <option value="">Pilih</option>
               {roleUsers.map((u) => <option key={u.id} value={u.id}>{u.full_name} ({u.faculty || u.email})</option>)}
             </select>
           </Field>

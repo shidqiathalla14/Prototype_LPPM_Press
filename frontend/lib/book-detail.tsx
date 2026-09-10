@@ -104,7 +104,7 @@ export function BookDetail({ bookId, backHref }: { bookId: string; backHref: str
       form.append('amount', payAmount);
       form.append('proof_file', payFile);
       await api.postForm(`/payments/${bookId}`, form, token);
-      setToast({ kind: 'success', message: 'Bukti pembayaran terkirim — menunggu verifikasi LPPM' });
+      setToast({ kind: 'success', message: 'Bukti pembayaran terkirim. Menunggu verifikasi LPPM' });
       setPayOpen(false); setPayFile(null);
       await load();
     } catch (e) {
@@ -193,7 +193,7 @@ export function BookDetail({ bookId, backHref }: { bookId: string; backHref: str
               <li key={f.id} className="flex items-center justify-between gap-3 px-5 py-3">
                 <div className="min-w-0">
                   <p className="truncate text-[13px] font-medium text-zinc-900 dark:text-zinc-100">
-                    v{f.version} — {f.file_name}
+                    v{f.version} · {f.file_name}
                   </p>
                   <p className="text-[11px] text-zinc-400">
                     {f.stage} · {formatBytes(f.file_size_bytes)} · {formatDate(f.created_at)}{f.uploaded_by_name ? ` · ${f.uploaded_by_name}` : ''}
@@ -297,7 +297,7 @@ export function BookDetail({ bookId, backHref }: { bookId: string; backHref: str
       {/* Modal revisi */}
       <Modal open={revOpen} onClose={() => setRevOpen(false)} title="Unggah Naskah Revisi">
         <div className="space-y-4">
-          <Field label="Berkas Revisi (PDF/DOCX, maks. 20MB)" hint="Diunggah sebagai versi berikutnya — versi lama tetap tersimpan.">
+          <Field label="Berkas Revisi (PDF/DOCX, maks. 20MB)" hint="Diunggah sebagai versi berikutnya. Versi lama tetap tersimpan.">
             <input type="file" accept=".pdf,.docx,.doc" onChange={(e) => setRevFile(e.target.files?.[0] || null)} className={inputClass} />
           </Field>
           <Field label="Catatan Revisi (opsional)">

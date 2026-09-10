@@ -8,7 +8,7 @@ import { diskStorage } from 'multer';
 import * as path from 'path';
 import * as fs from 'fs';
 import { PaymentsService } from './payments.service';
-import { UploadPaymentDto, VerifyPaymentDto } from './dto';
+import { RefundPaymentDto, UploadPaymentDto, VerifyPaymentDto } from './dto';
 import { JwtAuthGuard, RolesGuard } from '../common/guards';
 import { CurrentUser, Roles } from '../common/decorators';
 import { JwtPayload } from '../common/types';
@@ -59,6 +59,12 @@ export class PaymentsController {
   @Roles('LPPM')
   verify(@CurrentUser() user: JwtPayload, @Param('paymentId', ParseUUIDPipe) paymentId: string, @Body() dto: VerifyPaymentDto) {
     return this.payments.verify(user, paymentId, dto.is_approved, dto.rejection_reason);
+  }
+
+  @Patch(':paymentId/refund')
+  @Roles('LPPM')
+  refund(@CurrentUser() user: JwtPayload, @Param('paymentId', ParseUUIDPipe) paymentId: string, @Body() dto: RefundPaymentDto) {
+    return this.payments.refund(user, paymentId, parseFloat(dto.amount), dto.method, dto.reference, dto.notes);
   }
 
   @Get()

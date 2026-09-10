@@ -38,6 +38,12 @@ async function migrate() {
   `);
 
   await db.raw(`
+    ALTER TYPE book_status ADD VALUE IF NOT EXISTS 'REFUND_REQUIRED';
+    ALTER TYPE book_status ADD VALUE IF NOT EXISTS 'REFUNDED';
+    ALTER TYPE payment_status ADD VALUE IF NOT EXISTS 'REFUNDED';
+  `);
+
+  await db.raw(`
     CREATE TABLE IF NOT EXISTS users (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       email VARCHAR(255) UNIQUE NOT NULL,
@@ -115,6 +121,12 @@ async function migrate() {
       created_at TIMESTAMPTZ DEFAULT NOW(),
       updated_at TIMESTAMPTZ DEFAULT NOW()
     );
+    ALTER TABLE payments ADD COLUMN IF NOT EXISTS refund_amount NUMERIC(12,2);
+    ALTER TABLE payments ADD COLUMN IF NOT EXISTS refund_method VARCHAR(100);
+    ALTER TABLE payments ADD COLUMN IF NOT EXISTS refund_reference VARCHAR(255);
+    ALTER TABLE payments ADD COLUMN IF NOT EXISTS refund_notes TEXT;
+    ALTER TABLE payments ADD COLUMN IF NOT EXISTS refunded_by UUID REFERENCES users(id);
+    ALTER TABLE payments ADD COLUMN IF NOT EXISTS refunded_at TIMESTAMPTZ;
     CREATE INDEX IF NOT EXISTS idx_payments_status ON payments(status);
 
     CREATE TABLE IF NOT EXISTS book_status_history (

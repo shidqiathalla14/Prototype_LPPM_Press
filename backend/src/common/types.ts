@@ -9,11 +9,13 @@ export type BookStatus =
   | 'PAYMENT_REQUIRED'
   | 'PAYMENT_VERIFIED'
   | 'GETTING_ISBN'
+  | 'REFUND_REQUIRED'
+  | 'REFUNDED'
   | 'COMPLETED';
 
 export type FileStage = 'INITIAL' | 'REVISION_REVIEW' | 'REVISION_EDIT' | 'FINAL_PUBLISHED';
 
-export type PaymentStatus = 'PENDING' | 'VERIFIED' | 'REJECTED';
+export type PaymentStatus = 'PENDING' | 'VERIFIED' | 'REJECTED' | 'REFUNDED';
 
 export interface JwtPayload {
   sub: string;

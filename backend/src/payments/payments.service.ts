@@ -79,6 +79,32 @@ export class PaymentsService {
     return result;
   }
 
+  async refund(actor: JwtPayload, paymentId: string, amount: number, method: string, reference?: string, notes?: string) {
+    if (!Number.isFinite(amount) || amount <= 0) throw new BadRequestException('Nominal refund tidak valid');
+    const payment = await this.db('payments').where({ id: paymentId }).first();
+    if (!payment) throw new NotFoundException('Data pembayaran tidak ditemukan');
+    if (payment.status !== 'VERIFIED') throw new BadRequestException('Pembayaran harus berstatus VERIFIED sebelum direfund');
+
+    const result = await this.db.transaction(async (trx) => {
+      const book = (await trx('books').where({ id: payment.book_id }).first()) as BookRow;
+      if (book.status !== 'REFUND_REQUIRED') {
+        throw new BadRequestException(`Refund hanya dapat diproses saat status REFUND_REQUIRED (status saat ini: ${book.status})`);
+      }
+      const [updatedPayment] = await trx('payments').where({ id: paymentId }).update({
+        status: 'REFUNDED', refund_amount: amount, refund_method: method,
+        refund_reference: reference || null, refund_notes: notes || null,
+        refunded_by: actor.sub, refunded_at: trx.fn.now(), updated_at: trx.fn.now(),
+      }).returning('*');
+      await this.books.markRefunded(trx, payment.book_id, actor.sub, notes || `Refund Rp ${amount.toLocaleString('id-ID')} melalui ${method}`);
+      return updatedPayment;
+    });
+
+    const book = (await this.db('books').where({ id: result.book_id }).first()) as BookRow;
+    const author = (await this.db('users').where({ id: book.author_id }).first()) as UserRow;
+    if (author) void this.mail.refunded(author.email, author.full_name, book.title, amount, method, reference);
+    return result;
+  }
+
   listPending() {
     return this.db('payments')
       .leftJoin('books', 'payments.book_id', 'books.id')

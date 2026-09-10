@@ -55,15 +55,15 @@ export default function BooklistPage() {
   return (
     <DashboardShell>
       <PageHeader
-        title="Booklist Tugas"
-        description={role === 'REVIEWER' ? 'Naskah yang ditugaskan untuk penelaahan substantif.' : 'Naskah yang ditugaskan untuk penyuntingan tata bahasa & tata letak.'}
+        title="Booklist Naskah"
+        description="Seluruh naskah untuk dibaca; evaluasi hanya tersedia untuk naskah yang ditugaskan kepada Anda."
       />
       {error ? (
         <ErrorState message={error} onRetry={load} />
       ) : !books ? (
         <LoadingState />
       ) : books.length === 0 ? (
-        <EmptyState title="Belum ada tugas" description="Naskah yang ditugaskan LPPM kepada Anda akan muncul di sini." />
+        <EmptyState title="Belum ada naskah" description="Naskah yang masuk ke sistem akan muncul di sini." />
       ) : (
         <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-white shadow-subtle dark:border-zinc-800 dark:bg-zinc-900">
           <table className="w-full min-w-[720px] text-left text-sm">

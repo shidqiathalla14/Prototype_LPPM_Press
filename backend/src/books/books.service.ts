@@ -12,10 +12,12 @@ import { MailService } from '../mail/mail.service';
 import { AssignDto, CreateBookDto, EvaluateDto } from './dto';
 import { BookRow, BookStatus, JwtPayload, UserRow } from '../common/types';
 
-export const UPLOAD_ROOT = () => path.join(process.cwd(), 'uploads');
+export const UPLOAD_ROOT = () => path.resolve(process.env.UPLOAD_DIR || path.join(__dirname, '../../uploads'));
 
 /** Status yang mengunci naskah (Payment Lock) — perubahan berkas ditolak. */
-export const LOCKED_STATUSES: BookStatus[] = ['PAYMENT_REQUIRED', 'PAYMENT_VERIFIED', 'GETTING_ISBN', 'COMPLETED'];
+export const LOCKED_STATUSES: BookStatus[] = [
+  'PAYMENT_REQUIRED', 'PAYMENT_VERIFIED', 'GETTING_ISBN', 'REFUND_REQUIRED', 'REFUNDED', 'COMPLETED',
+];
 
 @Injectable()
 export class BooksService {
@@ -45,12 +47,11 @@ export class BooksService {
   }
 
   private assertCanView(book: BookRow, user: JwtPayload) {
-    const allowed =
-      user.role === 'LPPM' ||
-      book.author_id === user.sub ||
-      book.reviewer_id === user.sub ||
-      book.editor_id === user.sub;
-    if (!allowed) throw new ForbiddenException('Anda tidak memiliki akses ke naskah ini');
+    const canView = user.real_role === 'LPPM'
+      || (user.role === 'AUTHOR' && book.author_id === user.sub)
+      || (user.role === 'REVIEWER' && book.reviewer_id === user.sub)
+      || (user.role === 'EDITOR' && book.editor_id === user.sub);
+    if (!canView) throw new ForbiddenException('Anda tidak memiliki akses ke naskah ini');
   }
 
   // ---------------- Query ----------------
@@ -64,14 +65,17 @@ export class BooksService {
       .orderBy('created_at', 'desc');
   }
 
-  listAssigned(userId: string, role: 'REVIEWER' | 'EDITOR') {
-    const field = role === 'REVIEWER' ? 'reviewer_id' : 'editor_id';
+  listAssigned(userId: string, role: 'REVIEWER' | 'EDITOR' | 'LPPM', isImpersonating = false) {
+    if (role === 'LPPM' && !isImpersonating) {
+      throw new ForbiddenException('Pilih mode Reviewer atau Editor untuk melihat daftar tugas');
+    }
+    const assignmentColumn = role === 'REVIEWER' ? 'books.reviewer_id' : 'books.editor_id';
     return this.db('books')
       .leftJoin('users as author', 'books.author_id', 'author.id')
       .select('books.*')
       .select(this.db.raw('(SELECT MAX(version) FROM book_files WHERE book_id = books.id) as current_version'))
       .select('author.full_name as author_name')
-      .where({ [`books.${field}`]: userId })
+      .where(assignmentColumn, userId)
       .orderBy('books.updated_at', 'desc');
   }
 
@@ -334,6 +338,29 @@ export class BooksService {
     const author = (await this.db('users').where({ id: book.author_id }).first()) as UserRow;
     if (author) void this.mail.published(author.email, author.full_name, book.title, isbn);
     return updated;
+  }
+
+  async rejectIsbn(actor: JwtPayload, bookId: string, reason: string) {
+    const book = await this.getBookOrFail(bookId);
+    if (book.status !== 'GETTING_ISBN') {
+      throw new BadRequestException(`Penolakan ISBN hanya dapat dilakukan saat status GETTING_ISBN (status saat ini: ${book.status})`);
+    }
+
+    const updated = await this.db.transaction(async (trx) => {
+      await trx('books').where({ id: bookId }).update({ status: 'REFUND_REQUIRED', updated_at: trx.fn.now() });
+      await this.recordHistory(trx, bookId, actor.sub, 'GETTING_ISBN', 'REFUND_REQUIRED', 'ISBN_REJECT', reason);
+      return (await trx('books').where({ id: bookId }).first()) as BookRow;
+    });
+
+    const author = (await this.db('users').where({ id: book.author_id }).first()) as UserRow;
+    if (author) void this.mail.isbnRejected(author.email, author.full_name, book.title, reason);
+    return updated;
+  }
+
+  async markRefunded(trx: Knex.Transaction, bookId: string, actorId: string, notes: string) {
+    const book = (await trx('books').where({ id: bookId }).first()) as BookRow;
+    await trx('books').where({ id: bookId }).update({ status: 'REFUNDED', updated_at: trx.fn.now() });
+    await this.recordHistory(trx, bookId, actorId, book.status, 'REFUNDED', 'REFUND', notes);
   }
 
   /** Unduhan berkas naskah — dengan pemeriksaan otorisasi penuh. */

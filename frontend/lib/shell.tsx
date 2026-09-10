@@ -71,7 +71,7 @@ function ImpersonationBar() {
     <div className="sticky top-0 z-50 flex h-10 w-full items-center justify-between gap-2 border-b border-[#143823] bg-[#143823] px-4 text-xs text-zinc-100 shadow-sm sm:px-6">
       <div className="flex min-w-0 items-center gap-2.5">
         <span className={`h-2 w-2 shrink-0 rounded-full bg-[#D4E100] ${impersonating ? 'animate-pulse' : ''}`} />
-        <span className="hidden font-semibold text-zinc-200 sm:inline">Mode LPPM — Lihat sebagai:</span>
+        <span className="hidden font-semibold text-zinc-200 sm:inline">Mode LPPM. Lihat sebagai:</span>
         <span className="font-semibold text-zinc-200 sm:hidden">See as:</span>
         <select
           aria-label="Pilih mode tampilan"

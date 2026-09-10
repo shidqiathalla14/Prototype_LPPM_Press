@@ -54,7 +54,7 @@ export default function TambahPengajuanPage() {
           </Field>
           <Field label="Kategori Keilmuan">
             <select value={category} onChange={(e) => setCategory(e.target.value)} className={inputClass}>
-              <option value="">— Pilih kategori —</option>
+              <option value="">Pilih kategori</option>
               {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
           </Field>

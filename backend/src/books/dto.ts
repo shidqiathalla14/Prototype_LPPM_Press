@@ -45,6 +45,13 @@ export class PublishDto {
   isbn: string;
 }
 
+export class RejectIsbnDto {
+  @IsString()
+  @IsNotEmpty({ message: 'Alasan penolakan ISBN wajib diisi' })
+  @MaxLength(1000)
+  reason: string;
+}
+
 export class RevisionDto {
   @IsOptional()
   @IsString()

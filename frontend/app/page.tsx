@@ -124,11 +124,11 @@ export default function LandingPage() {
         </div>
         <div className="mx-auto mt-12 grid max-w-lg grid-cols-2 gap-4">
           <div className="rounded-xl border border-zinc-200 bg-zinc-50/60 p-5 dark:border-zinc-800 dark:bg-zinc-900/60">
-            <p className="text-3xl font-extrabold tracking-tight text-[#1E6F3D] dark:text-[#238636]">{catalog?.stats.published ?? '—'}</p>
+            <p className="text-3xl font-extrabold tracking-tight text-[#1E6F3D] dark:text-[#238636]">{catalog?.stats.published ?? '-'}</p>
             <p className="mt-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">Buku Terbit Ber-ISBN</p>
           </div>
           <div className="rounded-xl border border-zinc-200 bg-zinc-50/60 p-5 dark:border-zinc-800 dark:bg-zinc-900/60">
-            <p className="text-3xl font-extrabold tracking-tight text-[#1E6F3D] dark:text-[#238636]">{catalog?.stats.authors ?? '—'}</p>
+            <p className="text-3xl font-extrabold tracking-tight text-[#1E6F3D] dark:text-[#238636]">{catalog?.stats.authors ?? '-'}</p>
             <p className="mt-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">Penulis Bergabung</p>
           </div>
         </div>

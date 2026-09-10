@@ -20,7 +20,7 @@ import { diskStorage } from 'multer';
 import * as path from 'path';
 import * as fs from 'fs';
 import { BooksService, UPLOAD_ROOT } from './books.service';
-import { AssignDto, CreateBookDto, EvaluateDto, PublishDto, RevisionDto } from './dto';
+import { AssignDto, CreateBookDto, EvaluateDto, PublishDto, RejectIsbnDto, RevisionDto } from './dto';
 import { JwtAuthGuard, RolesGuard } from '../common/guards';
 import { CurrentUser, Roles } from '../common/decorators';
 import { JwtPayload } from '../common/types';
@@ -77,16 +77,19 @@ export class BooksController {
 
   @Get('my')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('AUTHOR', 'LPPM')
+  @Roles('AUTHOR', 'REVIEWER', 'EDITOR', 'LPPM')
   my(@CurrentUser() user: JwtPayload) {
+    if (user.role === 'REVIEWER' || user.role === 'EDITOR') {
+      return this.books.listAssigned(user.sub, user.role);
+    }
     return this.books.listMine(user.sub);
   }
 
   @Get('assigned')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('REVIEWER', 'EDITOR')
+  @Roles('REVIEWER', 'EDITOR', 'LPPM')
   assigned(@CurrentUser() user: JwtPayload) {
-    return this.books.listAssigned(user.sub, user.role as 'REVIEWER' | 'EDITOR');
+    return this.books.listAssigned(user.sub, user.role as 'REVIEWER' | 'EDITOR', user.real_role === 'LPPM');
   }
 
   @Get()
@@ -150,6 +153,13 @@ export class BooksController {
     @UploadedFile() file?: Express.Multer.File,
   ) {
     return this.books.publish(user, id, dto.isbn, file);
+  }
+
+  @Patch(':id/isbn-reject')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('LPPM')
+  rejectIsbn(@CurrentUser() user: JwtPayload, @Param('id', ParseUUIDPipe) id: string, @Body() dto: RejectIsbnDto) {
+    return this.books.rejectIsbn(user, id, dto.reason);
   }
 
   @Get('files/:fileId/download')

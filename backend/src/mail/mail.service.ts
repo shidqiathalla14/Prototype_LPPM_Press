@@ -120,6 +120,25 @@ export class MailService {
     });
   }
 
+  isbnRejected(to: string, name: string, bookTitle: string, reason: string) {
+    return this.send(to, 'Pengajuan ISBN Ditolak - Refund Diproses', {
+      recipientName: name, bookTitle, notes: reason,
+      extraLines: ['Pengajuan ISBN ditolak. Dana pembayaran akan dikembalikan oleh LPPM.'],
+      actionUrl: '/pengajuan',
+    });
+  }
+
+  refunded(to: string, name: string, bookTitle: string, amount: number, method: string, reference?: string) {
+    return this.send(to, 'Pengembalian Dana Telah Diproses', {
+      recipientName: name, bookTitle,
+      extraLines: [
+        `Dana sebesar <strong>Rp ${amount.toLocaleString('id-ID')}</strong> telah dikembalikan melalui <strong>${method}</strong>.`,
+        ...(reference ? [`Referensi pengembalian: <strong>${reference}</strong>.`] : []),
+      ],
+      actionUrl: '/pengajuan',
+    });
+  }
+
   published(to: string, name: string, bookTitle: string, isbn: string) {
     return this.send(to, 'Selamat! Buku Anda Telah Resmi Diterbitkan', {
       recipientName: name, bookTitle,
