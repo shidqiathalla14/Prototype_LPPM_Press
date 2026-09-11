@@ -3,7 +3,7 @@ import { Knex } from 'knex';
 import * as bcrypt from 'bcrypt';
 import { KNEX } from '../database/knex.module';
 import { ChangePasswordDto, UpdateProfileDto } from './dto';
-import { Role, UserRow } from '../common/types';
+import { JwtPayload, Role, UserRow } from '../common/types';
 
 const PUBLIC_FIELDS = ['id', 'email', 'full_name', 'identifier_number', 'institution', 'faculty', 'phone_number', 'role', 'created_at'] as const;
 
@@ -72,5 +72,30 @@ export class UsersService {
       paymentPending: await this.db('payments').where({ status: 'PENDING' }).count<{ count: string }>('* as count').first().then((r) => parseInt(r?.count || '0', 10)),
       inProgress: rows.filter((r) => !['COMPLETED'].includes(r.status)).length,
     };
+  }
+
+  async notifications(user: JwtPayload) {
+    const query = this.db('book_status_history as history')
+      .join('books', 'history.book_id', 'books.id')
+      .leftJoin('users as actor', 'history.actor_id', 'actor.id')
+      .select(
+        'history.id',
+        'history.book_id',
+        'history.from_status',
+        'history.to_status',
+        'history.action',
+        'history.notes',
+        'history.created_at',
+        'books.title as book_title',
+        'actor.full_name as actor_name',
+      )
+      .orderBy('history.created_at', 'desc')
+      .limit(8);
+
+    if (user.role === 'AUTHOR') query.where('books.author_id', user.sub);
+    if (user.role === 'REVIEWER') query.where('books.reviewer_id', user.sub);
+    if (user.role === 'EDITOR') query.where('books.editor_id', user.sub);
+
+    return query;
   }
 }

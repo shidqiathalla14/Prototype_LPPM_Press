@@ -59,6 +59,11 @@ export interface HistoryItem {
   actor_name: string | null;
 }
 
+export interface NotificationItem extends HistoryItem {
+  book_id: string;
+  book_title: string;
+}
+
 export interface Book {
   id: string;
   author_id: string;

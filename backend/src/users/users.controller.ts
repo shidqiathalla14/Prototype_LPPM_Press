@@ -35,6 +35,11 @@ export class UsersController {
     return this.users.dashboardStats(user.sub, user.role);
   }
 
+  @Get('me/notifications')
+  notifications(@CurrentUser() user: JwtPayload) {
+    return this.users.notifications(user);
+  }
+
   @Get('by-role/:role')
   @Roles('LPPM')
   listByRole(@Param('role') role: Role) {

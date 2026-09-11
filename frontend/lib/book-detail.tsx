@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { api, downloadFile, formatBytes, formatDate, formatRupiah } from './api';
 import { useAuth } from './auth';
-import { Book, WORKFLOW_STEPS, workflowProgress } from './types';
+import { Book, STATUS_LABEL, WORKFLOW_STEPS, workflowProgress } from './types';
 import {
   ErrorState, Field, GhostButton, inputClass, LoadingState, Modal, PrimaryButton, StatusBadge, Toast,
 } from './ui';
@@ -271,7 +271,7 @@ export function BookDetail({ bookId, backHref }: { bookId: string; backHref: str
         <section className="rounded-xl border border-zinc-200 bg-white shadow-subtle dark:border-zinc-800 dark:bg-zinc-900" aria-label="Riwayat status">
           <div className="flex items-center gap-2 border-b border-zinc-100 px-5 py-3.5 dark:border-zinc-800">
             <History className="h-4 w-4 text-zinc-400" strokeWidth={1.75} />
-            <h2 className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">Jejak Aktivitas</h2>
+            <h2 className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">Timeline Status Buku</h2>
           </div>
           {(book.history || []).length === 0 ? (
             <p className="px-5 py-6 text-xs text-zinc-400">Belum ada aktivitas tercatat.</p>
@@ -279,12 +279,12 @@ export function BookDetail({ bookId, backHref }: { bookId: string; backHref: str
             <ol className="relative ml-8 space-y-4 border-l border-zinc-200 px-5 py-4 dark:border-zinc-700">
               {book.history!.map((h) => (
                 <li key={h.id} className="relative">
-                  <span className="absolute -left-[26.5px] top-1 h-2 w-2 rounded-full bg-[#1E6F3D]" />
+                  <span className={`absolute -left-[29px] top-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full border-2 border-white dark:border-zinc-900 ${h.to_status === book.status ? 'bg-[#D4E100]' : 'bg-[#1E6F3D]'}`} />
                   <p className="text-[13px] font-medium text-zinc-900 dark:text-zinc-100">
-                    {h.from_status ? `${h.from_status} → ` : ''}{h.to_status}
+                    {h.from_status ? `${STATUS_LABEL[h.from_status]} → ` : ''}{STATUS_LABEL[h.to_status]}
                   </p>
                   <p className="text-[11px] text-zinc-400">
-                    {h.actor_name || 'Sistem'} · {formatDate(h.created_at)}
+                    {h.action.replaceAll('_', ' ')} · {h.actor_name || 'Sistem'} · {formatDate(h.created_at)}
                   </p>
                   {h.notes && <p className="mt-0.5 text-[11px] text-zinc-500">{h.notes}</p>}
                 </li>
