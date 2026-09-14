@@ -3,6 +3,7 @@
  * Seluruh akun demo memakai password: Password123!
  * Jalankan: npm run seed
  */
+import 'dotenv/config';
 import knex from 'knex';
 import * as bcrypt from 'bcrypt';
 import * as fs from 'fs';

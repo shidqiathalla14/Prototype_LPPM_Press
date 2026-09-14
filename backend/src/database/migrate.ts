@@ -3,6 +3,7 @@
  * Idempotent — aman dijalankan berulang kali.
  * Jalankan: npm run migrate
  */
+import 'dotenv/config';
 import knex from 'knex';
 
 const db = knex({
