@@ -2,22 +2,24 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { BadgeCheck, Search, UserPlus2 } from 'lucide-react';
+import { BadgeCheck, ChevronLeft, ChevronRight, Search, UserPlus2 } from 'lucide-react';
 import { api, formatDate, formatRupiah } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { DashboardShell } from '@/lib/shell';
-import { Book, BookStatus, Payment, STATUS_LABEL } from '@/lib/types';
+import { Book, BookStatus, PaginatedBooks, Payment, STATUS_LABEL } from '@/lib/types';
 import { EmptyState, ErrorState, Field, GhostButton, inputClass, LoadingState, Modal, PageHeader, PrimaryButton, StatusBadge, Toast } from '@/lib/ui';
 
 interface RoleUser { id: string; full_name: string; email: string; faculty: string | null }
 
 export default function ManajemenBukuPage() {
   const { token } = useAuth();
-  const [books, setBooks] = useState<Book[] | null>(null);
+  const [books, setBooks] = useState<PaginatedBooks | null>(null);
   const [payments, setPayments] = useState<Payment[]>([]);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
+  const [page, setPage] = useState(1);
   const [toast, setToast] = useState<{ kind: 'success' | 'error'; message: string } | null>(null);
 
   const [assignTarget, setAssignTarget] = useState<Book | null>(null);
@@ -37,15 +39,18 @@ export default function ManajemenBukuPage() {
       const params = new URLSearchParams();
       if (search) params.set('search', search);
       if (statusFilter) params.set('status', statusFilter);
+      if (categoryFilter) params.set('category', categoryFilter);
+      params.set('page', String(page));
+      params.set('pageSize', '10');
       const [b, p] = await Promise.all([
-        api.get<Book[]>(`/books?${params.toString()}`, token),
+        api.get<PaginatedBooks>(`/books?${params.toString()}`, token),
         api.get<Payment[]>('/payments', token),
       ]);
       setBooks(b); setPayments(p); setError('');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Gagal memuat data');
     }
-  }, [token, search, statusFilter]);
+  }, [token, search, statusFilter, categoryFilter, page]);
 
   useEffect(() => {
     const t = setTimeout(() => void load(), 300);
@@ -140,11 +145,15 @@ export default function ManajemenBukuPage() {
       <div className="mb-4 flex flex-col gap-2 sm:flex-row">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-zinc-400" strokeWidth={1.5} />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Cari judul atau penulis..." className={`${inputClass} !pl-9`} />
+          <input value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} placeholder="Cari judul atau penulis..." className={`${inputClass} !pl-9`} />
         </div>
-        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className={`${inputClass} sm:w-56`}>
+        <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }} className={`${inputClass} sm:w-56`}>
           <option value="">Semua Status</option>
           {Object.entries(STATUS_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+        </select>
+        <select value={categoryFilter} onChange={(e) => { setCategoryFilter(e.target.value); setPage(1); }} className={`${inputClass} sm:w-56`}>
+          <option value="">Semua Kategori</option>
+          {(books?.categories || []).map((category) => <option key={category} value={category}>{category}</option>)}
         </select>
       </div>
 
@@ -152,9 +161,10 @@ export default function ManajemenBukuPage() {
         <ErrorState message={error} onRetry={load} />
       ) : !books ? (
         <LoadingState />
-      ) : books.length === 0 ? (
+      ) : books.items.length === 0 ? (
         <EmptyState title="Tidak ada naskah" description="Belum ada naskah yang cocok dengan filter saat ini." />
       ) : (
+        <>
         <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-white shadow-subtle dark:border-zinc-800 dark:bg-zinc-900">
           <table className="w-full min-w-[860px] text-left text-sm">
             <thead>
@@ -167,7 +177,7 @@ export default function ManajemenBukuPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
-              {books.map((b) => {
+              {books.items.map((b) => {
                 const locked = ['PAYMENT_REQUIRED', 'PAYMENT_VERIFIED', 'GETTING_ISBN', 'COMPLETED'].includes(b.status);
                 return (
                   <tr key={b.id} className="transition-colors hover:bg-zinc-50/70 dark:hover:bg-zinc-800/40">
@@ -208,6 +218,33 @@ export default function ManajemenBukuPage() {
             </tbody>
           </table>
         </div>
+        <div className="mt-3 flex flex-col gap-3 text-xs text-zinc-500 sm:flex-row sm:items-center sm:justify-between">
+          <span>Menampilkan {((books.page - 1) * books.pageSize) + 1}-{Math.min(books.page * books.pageSize, books.total)} dari {books.total} naskah</span>
+          <div className="flex items-center justify-end gap-2">
+            <button
+              type="button"
+              aria-label="Halaman sebelumnya"
+              title="Halaman sebelumnya"
+              disabled={books.page <= 1}
+              onClick={() => setPage((current) => current - 1)}
+              className="rounded-lg border border-zinc-200 p-2 text-zinc-700 transition-colors hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-800"
+            >
+              <ChevronLeft className="h-4 w-4" strokeWidth={1.75} />
+            </button>
+            <span>Halaman {books.page} dari {books.totalPages}</span>
+            <button
+              type="button"
+              aria-label="Halaman berikutnya"
+              title="Halaman berikutnya"
+              disabled={books.page >= books.totalPages}
+              onClick={() => setPage((current) => current + 1)}
+              className="rounded-lg border border-zinc-200 p-2 text-zinc-700 transition-colors hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-800"
+            >
+              <ChevronRight className="h-4 w-4" strokeWidth={1.75} />
+            </button>
+          </div>
+        </div>
+        </>
       )}
 
       {/* Modal penugasan */}

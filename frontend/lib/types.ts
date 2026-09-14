@@ -87,6 +87,15 @@ export interface Book {
   history?: HistoryItem[];
 }
 
+export interface PaginatedBooks {
+  items: Book[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+  categories: string[];
+}
+
 export interface CatalogResponse {
   items: Book[];
   categories: string[];
