@@ -56,30 +56,55 @@ export class BooksService {
 
   // ---------------- Query ----------------
 
-  listMine(authorId: string) {
-    return this.db('books')
+  async listMine(authorId: string, filters: { status?: string; search?: string; category?: string; page?: number; pageSize?: number } = {}) {
+    let q = this.db('books')
       .select('books.*')
       .select(this.db.raw('(SELECT MAX(version) FROM book_files WHERE book_id = books.id) as current_version'))
       .where({ author_id: authorId })
       .whereNull('superseded_by')
       .orderBy('created_at', 'desc');
+    if (filters.status) q = q.where('status', filters.status);
+    if (filters.category) q = q.where('category', filters.category);
+    if (filters.search) q = q.whereILike('title', `%${filters.search}%`);
+    return this.paginate(q, filters);
   }
 
-  listAssigned(userId: string, role: 'REVIEWER' | 'EDITOR' | 'LPPM', isImpersonating = false) {
+  async listAssigned(userId: string, role: 'REVIEWER' | 'EDITOR' | 'LPPM', isImpersonating = false, filters: { status?: string; search?: string; category?: string; page?: number; pageSize?: number } = {}) {
     if (role === 'LPPM' && !isImpersonating) {
       throw new ForbiddenException('Pilih mode Reviewer atau Editor untuk melihat daftar tugas');
     }
     const assignmentColumn = role === 'REVIEWER' ? 'books.reviewer_id' : 'books.editor_id';
-    return this.db('books')
+    let q = this.db('books')
       .leftJoin('users as author', 'books.author_id', 'author.id')
       .select('books.*')
       .select(this.db.raw('(SELECT MAX(version) FROM book_files WHERE book_id = books.id) as current_version'))
       .select('author.full_name as author_name')
       .where(assignmentColumn, userId)
       .orderBy('books.updated_at', 'desc');
+    if (filters.status) q = q.where('books.status', filters.status);
+    if (filters.category) q = q.where('books.category', filters.category);
+    if (filters.search) q = q.where((b) => b.whereILike('books.title', `%${filters.search}%`).orWhereILike('author.full_name', `%${filters.search}%`));
+    return this.paginate(q, filters);
   }
 
-  listAll(filters: { status?: string; search?: string; category?: string }) {
+  private async paginate(q: Knex.QueryBuilder, filters: { page?: number; pageSize?: number }) {
+    const page = Math.max(1, filters.page || 1);
+    const pageSize = Math.min(100, Math.max(1, filters.pageSize || 10));
+    const countRow = await q.clone().clearSelect().clearOrder().countDistinct<{ count: string }>('books.id as count').first();
+    const total = parseInt(countRow?.count || '0', 10);
+    return {
+      items: await q.limit(pageSize).offset((page - 1) * pageSize),
+      total,
+      page,
+      pageSize,
+      totalPages: Math.ceil(total / pageSize),
+      categories: [],
+    };
+  }
+
+  async listAll(filters: { status?: string; search?: string; category?: string; page?: number; pageSize?: number }) {
+    const page = Math.max(1, filters.page || 1);
+    const pageSize = Math.min(100, Math.max(1, filters.pageSize || 10));
     let q = this.db('books')
       .leftJoin('users as author', 'books.author_id', 'author.id')
       .leftJoin('users as reviewer', 'books.reviewer_id', 'reviewer.id')
@@ -93,7 +118,18 @@ export class BooksService {
         b.whereILike('books.title', `%${filters.search}%`).orWhereILike('author.full_name', `%${filters.search}%`),
       );
     }
-    return q;
+    const countRow = await q.clone().clearSelect().clearOrder().countDistinct<{ count: string }>('books.id as count').first();
+    const categories = await this.db('books').distinct('category').whereNotNull('category').orderBy('category');
+    const total = parseInt(countRow?.count || '0', 10);
+    const items = await q.limit(pageSize).offset((page - 1) * pageSize);
+    return {
+      items,
+      total,
+      page,
+      pageSize,
+      totalPages: Math.ceil(total / pageSize),
+      categories: categories.map((row) => row.category),
+    };
   }
 
   async publicCatalog(search?: string, category?: string) {

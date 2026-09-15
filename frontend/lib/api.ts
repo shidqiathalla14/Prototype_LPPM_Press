@@ -10,7 +10,7 @@ export class ApiError extends Error {
 
 async function request<T>(method: string, path: string, opts: { token?: string | null; body?: unknown; form?: FormData } = {}): Promise<T> {
   const headers: Record<string, string> = {};
-  if (opts.token) headers.Authorization = `Bearer ${opts.token}`;
+  if (opts.token && opts.token !== 'cookie-session') headers.Authorization = `Bearer ${opts.token}`;
   let body: BodyInit | undefined;
   if (opts.form) {
     body = opts.form;
@@ -18,7 +18,7 @@ async function request<T>(method: string, path: string, opts: { token?: string |
     headers['Content-Type'] = 'application/json';
     body = JSON.stringify(opts.body);
   }
-  const res = await fetch(`${API_URL}${path}`, { method, headers, body, cache: 'no-store' });
+  const res = await fetch(`${API_URL}${path}`, { method, headers, body, cache: 'no-store', credentials: 'include' });
   if (!res.ok) {
     let message = 'Terjadi kesalahan pada server';
     try {
@@ -28,6 +28,7 @@ async function request<T>(method: string, path: string, opts: { token?: string |
     } catch { /* abaikan */ }
     throw new ApiError(res.status, message);
   }
+  if (res.status === 204) return undefined as T;
   return res.json() as Promise<T>;
 }
 
@@ -45,7 +46,9 @@ export function downloadUrl(path: string) {
 
 /** Unduh berkas terproteksi dengan header Authorization lalu picu download. */
 export async function downloadFile(path: string, token: string, fallbackName: string) {
-  const res = await fetch(`${API_URL}${path}`, { headers: { Authorization: `Bearer ${token}` } });
+  const headers: Record<string, string> = {};
+  if (token && token !== 'cookie-session') headers.Authorization = `Bearer ${token}`;
+  const res = await fetch(`${API_URL}${path}`, { headers, credentials: 'include' });
   if (!res.ok) throw new ApiError(res.status, 'Gagal mengunduh berkas');
   const blob = await res.blob();
   const url = URL.createObjectURL(blob);

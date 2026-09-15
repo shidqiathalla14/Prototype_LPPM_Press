@@ -17,6 +17,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import { diskStorage } from 'multer';
+import { ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import * as path from 'path';
 import * as fs from 'fs';
 import { BooksService, UPLOAD_ROOT } from './books.service';
@@ -78,25 +79,63 @@ export class BooksController {
   @Get('my')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('AUTHOR', 'REVIEWER', 'EDITOR', 'LPPM')
-  my(@CurrentUser() user: JwtPayload) {
+  my(
+    @CurrentUser() user: JwtPayload,
+    @Query('status') status?: string,
+    @Query('search') search?: string,
+    @Query('category') category?: string,
+    @Query('page') page?: string,
+    @Query('pageSize') pageSize?: string,
+  ) {
+    const filters = { status, search, category, page: Number(page) || 1, pageSize: Number(pageSize) || 10 };
     if (user.role === 'REVIEWER' || user.role === 'EDITOR') {
-      return this.books.listAssigned(user.sub, user.role);
+      return this.books.listAssigned(user.sub, user.role, false, filters);
     }
-    return this.books.listMine(user.sub);
+    return this.books.listMine(user.sub, filters);
   }
 
   @Get('assigned')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('REVIEWER', 'EDITOR', 'LPPM')
-  assigned(@CurrentUser() user: JwtPayload) {
-    return this.books.listAssigned(user.sub, user.role as 'REVIEWER' | 'EDITOR', user.real_role === 'LPPM');
+  assigned(
+    @CurrentUser() user: JwtPayload,
+    @Query('status') status?: string,
+    @Query('search') search?: string,
+    @Query('category') category?: string,
+    @Query('page') page?: string,
+    @Query('pageSize') pageSize?: string,
+  ) {
+    return this.books.listAssigned(
+      user.sub,
+      user.role as 'REVIEWER' | 'EDITOR',
+      user.real_role === 'LPPM',
+      { status, search, category, page: Number(page) || 1, pageSize: Number(pageSize) || 10 },
+    );
   }
 
   @Get()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('LPPM')
-  all(@Query('status') status?: string, @Query('search') search?: string, @Query('category') category?: string) {
-    return this.books.listAll({ status, search, category });
+  @ApiBearerAuth('access-token')
+  @ApiQuery({ name: 'status', required: false, enum: ['SUBMITTED', 'IN_REVIEW', 'REVISION_REVIEW', 'IN_EDIT', 'REVISION_EDIT', 'PAYMENT_REQUIRED', 'PAYMENT_VERIFIED', 'GETTING_ISBN', 'COMPLETED'], description: 'Filter berdasarkan status buku' })
+  @ApiQuery({ name: 'search', required: false, description: 'Cari berdasarkan judul atau nama penulis' })
+  @ApiQuery({ name: 'category', required: false, description: 'Filter berdasarkan kategori buku' })
+  @ApiQuery({ name: 'page', required: false, type: Number, example: 1, description: 'Nomor halaman' })
+  @ApiQuery({ name: 'pageSize', required: false, type: Number, example: 10, description: 'Jumlah data per halaman, maksimal 100' })
+  all(
+    @Query('status') status?: string,
+    @Query('search') search?: string,
+    @Query('category') category?: string,
+    @Query('page') page?: string,
+    @Query('pageSize') pageSize?: string,
+  ) {
+    return this.books.listAll({
+      status,
+      search,
+      category,
+      page: Number(page) || 1,
+      pageSize: Number(pageSize) || 10,
+    });
   }
 
   @Get(':id')
