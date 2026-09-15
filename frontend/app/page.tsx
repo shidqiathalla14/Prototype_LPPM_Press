@@ -62,7 +62,6 @@ export default function LandingPage() {
     }
   }, []);
 
-  useEffect(() => { void load('', ''); }, [load]);
   useEffect(() => {
     const t = setTimeout(() => void load(search, category), 350);
     return () => clearTimeout(t);

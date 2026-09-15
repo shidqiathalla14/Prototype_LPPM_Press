@@ -19,8 +19,11 @@ async function bootstrap() {
   SwaggerModule.setup('docs', app, swaggerDocument, {
     customSiteTitle: 'LPPM Press API Docs',
   });
+  // CORS: default reflektif (development). Di produksi batasi via CORS_ORIGIN (daftar origin dipisah koma).
   app.enableCors({
-    origin: true,
+    origin: process.env.CORS_ORIGIN
+      ? process.env.CORS_ORIGIN.split(',').map((o) => o.trim()).filter(Boolean)
+      : true,
     credentials: true,
   });
   app.useGlobalPipes(

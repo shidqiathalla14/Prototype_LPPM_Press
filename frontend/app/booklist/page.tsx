@@ -37,7 +37,10 @@ export default function BooklistPage() {
     }
   }, [token, search, statusFilter, page]);
 
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    const t = setTimeout(() => void load(), 300);
+    return () => clearTimeout(t);
+  }, [load]);
 
   const submitEvaluation = async () => {
     if (!target || !token) return;

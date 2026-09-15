@@ -11,7 +11,6 @@ export class AuthController {
   constructor(private readonly auth: AuthService) {}
 
   private setSessionCookie(res: Response, token: string) {
-    res.setHeader('Cache-Control', 'no-store');
     res.cookie('lppm_session', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -58,12 +57,6 @@ export class AuthController {
   @Post('logout')
   @HttpCode(204)
   logout(@Res({ passthrough: true }) res: Response) {
-    res.setHeader('Cache-Control', 'no-store');
-    res.clearCookie('lppm_session', {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-    });
+    res.clearCookie('lppm_session', { httpOnly: true, sameSite: 'lax', path: '/' });
   }
 }

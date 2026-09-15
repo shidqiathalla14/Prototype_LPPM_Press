@@ -1,6 +1,7 @@
 import { BadRequestException, ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { Knex } from 'knex';
 import * as path from 'path';
+import * as fs from 'fs';
 import { KNEX } from '../database/knex.module';
 import { MailService } from '../mail/mail.service';
 import { BooksService, UPLOAD_ROOT } from '../books/books.service';
@@ -25,6 +26,7 @@ export class PaymentsService {
     }
 
     const relPath = path.relative(UPLOAD_ROOT(), file.path);
+    const previous = await this.db('payments').where({ book_id: bookId }).first();
     const payment = await this.db.transaction(async (trx) => {
       const existing = await trx('payments').where({ book_id: bookId }).first();
       if (existing) {
@@ -43,6 +45,11 @@ export class PaymentsService {
         .returning('*');
       return p;
     });
+
+    // Bersihkan bukti lama yang telah digantikan agar tidak menumpuk sebagai berkas orphan.
+    if (previous?.proof_url && previous.proof_url !== relPath && payment.status === 'PENDING') {
+      void fs.promises.unlink(path.join(UPLOAD_ROOT(), previous.proof_url)).catch(() => undefined);
+    }
     return payment;
   }
 

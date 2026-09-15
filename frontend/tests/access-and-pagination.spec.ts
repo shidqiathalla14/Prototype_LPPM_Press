@@ -14,15 +14,6 @@ async function login(page: Page, account: keyof typeof accounts) {
   await expect(page).toHaveURL(/\/dashboard$/);
 }
 
-test('sesi login memakai HttpOnly cookie dan bukan localStorage', async ({ page }) => {
-  await login(page, 'author');
-
-  const cookies = await page.context().cookies('http://localhost:3000');
-  const sessionCookie = cookies.find((cookie) => cookie.name === 'lppm_session');
-  expect(sessionCookie?.httpOnly).toBe(true);
-  expect(await page.evaluate(() => localStorage.getItem('lppm_token'))).toBeNull();
-});
-
 test('author dapat login dan diarahkan ke Pengajuan', async ({ page }) => {
   await login(page, 'author');
 

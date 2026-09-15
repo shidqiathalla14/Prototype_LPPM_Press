@@ -30,7 +30,10 @@ export default function PengajuanPage() {
     }
   }, [token, search, statusFilter, page]);
 
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    const t = setTimeout(() => void load(), 300);
+    return () => clearTimeout(t);
+  }, [load]);
 
   return (
     <DashboardShell>

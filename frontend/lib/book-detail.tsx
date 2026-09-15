@@ -75,7 +75,7 @@ export function BookDetail({ bookId, backHref }: { bookId: string; backHref: str
   const isAuthor = user?.id === book.author_id;
   const isAssignedReviewer = role === 'REVIEWER' && user?.id === book.reviewer_id;
   const isAssignedEditor = role === 'EDITOR' && user?.id === book.editor_id;
-  const locked = ['PAYMENT_REQUIRED', 'PAYMENT_VERIFIED', 'GETTING_ISBN', 'COMPLETED'].includes(book.status);
+  const locked = ['PAYMENT_REQUIRED', 'PAYMENT_VERIFIED', 'GETTING_ISBN', 'REFUND_REQUIRED', 'REFUNDED', 'COMPLETED'].includes(book.status);
   const canUploadRevision = isAuthor && ['REVISION_REVIEW', 'REVISION_EDIT'].includes(book.status);
   const canEvaluate = (isAssignedReviewer && book.status === 'IN_REVIEW') || (isAssignedEditor && book.status === 'IN_EDIT');
   const canUploadPayment = isAuthor && book.status === 'PAYMENT_REQUIRED';

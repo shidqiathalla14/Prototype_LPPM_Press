@@ -151,6 +151,9 @@ async function migrate() {
       is_resolved BOOLEAN DEFAULT FALSE,
       created_at TIMESTAMPTZ DEFAULT NOW()
     );
+
+    CREATE INDEX IF NOT EXISTS idx_books_created_at ON books(created_at);
+    CREATE INDEX IF NOT EXISTS idx_history_created_at ON book_status_history(created_at);
   `);
 
   console.log('Migrasi selesai: seluruh tabel & enum terverifikasi.');

@@ -5,11 +5,11 @@ services:
     container_name: lppm-press-db
     restart: unless-stopped
     environment:
-      POSTGRES_USER: lppm
-      POSTGRES_PASSWORD: lppm_secret
-      POSTGRES_DB: lppm_press
+      POSTGRES_USER: ${DATABASE_USER:-lppm}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-lppm_secret}
+      POSTGRES_DB: ${DATABASE_NAME:-lppm_press}
     ports:
-      - "5433:5432"
+      - "${DATABASE_PORT:-5433}:5432"
     volumes:
       - lppm_pgdata:/var/lib/postgresql/data
 volumes:

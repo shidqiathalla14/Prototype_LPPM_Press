@@ -19,6 +19,9 @@ export const LOCKED_STATUSES: BookStatus[] = [
   'PAYMENT_REQUIRED', 'PAYMENT_VERIFIED', 'GETTING_ISBN', 'REFUND_REQUIRED', 'REFUNDED', 'COMPLETED',
 ];
 
+/** Biaya penerbitan buku (Rupiah) — sumber tunggal untuk tagihan & email. */
+export const PUBLICATION_FEE = 1_500_000;
+
 @Injectable()
 export class BooksService {
   constructor(
@@ -328,7 +331,7 @@ export class BooksService {
       if (dto.decision === 'REQUEST_REVISION') {
         void this.mail.revisionRequested(author.email, author.full_name, book.title, dto.notes, !isReviewer);
       } else if (!isReviewer) {
-        void this.mail.paymentRequired(author.email, author.full_name, book.title, 1500000);
+        void this.mail.paymentRequired(author.email, author.full_name, book.title, PUBLICATION_FEE);
       }
     }
     return { status: nextStatus, message: dto.decision === 'APPROVED' ? 'Tahapan disetujui' : 'Permintaan revisi dikirim ke penulis' };

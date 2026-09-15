@@ -2,8 +2,8 @@ export type Role = 'AUTHOR' | 'REVIEWER' | 'EDITOR' | 'LPPM';
 
 export type BookStatus =
   | 'SUBMITTED' | 'IN_REVIEW' | 'REVISION_REVIEW' | 'IN_EDIT' | 'REVISION_EDIT'
-  | 'PAYMENT_REQUIRED' | 'PAYMENT_VERIFIED' | 'GETTING_ISBN' | 'COMPLETED'
-  | 'REFUND_REQUIRED' | 'REFUNDED';
+  | 'PAYMENT_REQUIRED' | 'PAYMENT_VERIFIED' | 'GETTING_ISBN'
+  | 'REFUND_REQUIRED' | 'REFUNDED' | 'COMPLETED';
 
 export interface User {
   id: string;
@@ -42,7 +42,7 @@ export interface Payment {
   book_id: string;
   amount: number;
   proof_url: string;
-  status: 'PENDING' | 'VERIFIED' | 'REJECTED';
+  status: 'PENDING' | 'VERIFIED' | 'REJECTED' | 'REFUNDED';
   rejection_reason: string | null;
   verified_at: string | null;
   created_at: string;
@@ -112,6 +112,8 @@ export const STATUS_LABEL: Record<BookStatus, string> = {
   PAYMENT_REQUIRED: 'Menunggu Pembayaran',
   PAYMENT_VERIFIED: 'Pembayaran Terverifikasi',
   GETTING_ISBN: 'Pengurusan ISBN',
+  REFUND_REQUIRED: 'Refund Diperlukan',
+  REFUNDED: 'Dana Dikembalikan',
   COMPLETED: 'Terbit',
   REFUND_REQUIRED: 'Menunggu Pengembalian Dana',
   REFUNDED: 'Dana Dikembalikan',
@@ -126,6 +128,8 @@ export const STATUS_BADGE_CLASS: Record<BookStatus, string> = {
   PAYMENT_REQUIRED: 'bg-orange-50 text-orange-800 border-orange-200 dark:bg-orange-950/40 dark:text-orange-300 dark:border-orange-800',
   PAYMENT_VERIFIED: 'bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800',
   GETTING_ISBN: 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-800',
+  REFUND_REQUIRED: 'bg-red-50 text-red-700 border-red-200 dark:bg-red-950/40 dark:text-red-300 dark:border-red-800',
+  REFUNDED: 'bg-zinc-100 text-zinc-600 border-zinc-300 dark:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-700',
   COMPLETED: 'bg-[#EAF5EE] text-[#143823] border-[#1E6F3D]/30 font-semibold dark:bg-[#143823]/60 dark:text-[#EAF5EE] dark:border-[#238636]',
   REFUND_REQUIRED: 'bg-red-50 text-red-700 border-red-200 dark:bg-red-950/40 dark:text-red-300 dark:border-red-800',
   REFUNDED: 'bg-slate-100 text-slate-700 border-slate-300 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700',
@@ -150,6 +154,8 @@ export function workflowProgress(status: BookStatus): number {
     case 'PAYMENT_REQUIRED': return 3;
     case 'PAYMENT_VERIFIED': return 4;
     case 'GETTING_ISBN': return 4;
+    case 'REFUND_REQUIRED': return 4;
+    case 'REFUNDED': return 4;
     case 'COMPLETED': return 5;
     case 'REFUND_REQUIRED':
     case 'REFUNDED': return 5;
