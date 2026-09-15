@@ -13,7 +13,7 @@ const db = knex({
   client: 'pg',
   connection: {
     host: process.env.DATABASE_HOST || 'localhost',
-    port: parseInt(process.env.DATABASE_PORT || '5432', 10),
+    port: parseInt(process.env.DATABASE_PORT || '5433', 10),
     user: process.env.DATABASE_USER || 'lppm',
     password: process.env.DATABASE_PASSWORD || 'lppm_secret',
     database: process.env.DATABASE_NAME || 'lppm_press',
@@ -44,9 +44,9 @@ function writeSeedPdf(relPath: string): number {
 }
 
 async function seed() {
-  const existing = await db('users').count<{ count: string }>('* as count').first();
-  if (existing && parseInt(existing.count, 10) > 0) {
-    console.log('Database sudah berisi data — seed dilewati.');
+  const alreadySeeded = await db('books').where({ title: 'Metodologi Penelitian Kuantitatif untuk Ilmu Sosial' }).first();
+  if (alreadySeeded) {
+    console.log('Data demo sudah tersedia — seed dilewati.');
     await db.destroy();
     return;
   }
@@ -62,6 +62,7 @@ async function seed() {
       { email: 'author2@upnvj.ac.id', password_hash: hash, full_name: 'Dr. Dewi Lestari, S.E., M.M.', identifier_number: '0420067902', faculty: 'Fakultas Ekonomi dan Bisnis', phone_number: '0812-1000-0005', role: 'AUTHOR' },
       { email: 'author3@upnvj.ac.id', password_hash: hash, full_name: 'Rizky Pratama, S.H., M.H.', identifier_number: '0430119003', faculty: 'Fakultas Hukum', phone_number: '0812-1000-0006', role: 'AUTHOR' },
     ])
+    .onConflict('email').merge()
     .returning('*');
 
   const mkFile = (bookId: string, by: string, version: number, stage: string, name: string, notes: string | null, daysAgo: number) => {

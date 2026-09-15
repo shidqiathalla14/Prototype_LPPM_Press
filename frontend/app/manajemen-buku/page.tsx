@@ -189,8 +189,10 @@ export default function ManajemenBukuPage() {
                     </td>
                     <td className="px-5 py-3.5"><StatusBadge status={b.status as BookStatus} /></td>
                     <td className="px-5 py-3.5 text-xs text-zinc-500">
-                      <p>R: {b.reviewer_name || 'Belum ditugaskan'}</p>
-                      <p>E: {b.editor_name || 'Belum ditugaskan'}</p>
+                      <div className="flex flex-col items-start gap-1.5">
+                        <span className="inline-flex min-h-6 items-center rounded-full border border-zinc-200 px-2.5 py-0.5 dark:border-zinc-700">R: {b.reviewer_name || 'Belum ditugaskan'}</span>
+                        <span className="inline-flex min-h-6 items-center rounded-full border border-zinc-200 px-2.5 py-0.5 dark:border-zinc-700">E: {b.editor_name || 'Belum ditugaskan'}</span>
+                      </div>
                     </td>
                     <td className="px-5 py-3.5 text-xs text-zinc-500">{formatDate(b.created_at)}</td>
                     <td className="px-5 py-3.5 text-right">

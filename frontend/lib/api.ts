@@ -22,9 +22,15 @@ async function request<T>(method: string, path: string, opts: { token?: string |
   if (!res.ok) {
     let message = 'Terjadi kesalahan pada server';
     try {
-      const data = await res.json();
-      if (typeof data?.message === 'string') message = data.message;
-      else if (Array.isArray(data?.message)) message = data.message.join(', ');
+      const responseBody = await res.text();
+      try {
+        const data = JSON.parse(responseBody);
+        if (typeof data?.message === 'string') message = data.message;
+        else if (Array.isArray(data?.message)) message = data.message.join(', ');
+        else if (responseBody) message = responseBody;
+      } catch {
+        if (responseBody) message = responseBody;
+      }
     } catch { /* abaikan */ }
     throw new ApiError(res.status, message);
   }
