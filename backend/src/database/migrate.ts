@@ -3,13 +3,14 @@
  * Idempotent — aman dijalankan berulang kali.
  * Jalankan: npm run migrate
  */
+import 'dotenv/config';
 import knex from 'knex';
 
 const db = knex({
   client: 'pg',
   connection: {
     host: process.env.DATABASE_HOST || 'localhost',
-    port: parseInt(process.env.DATABASE_PORT || '5432', 10),
+    port: parseInt(process.env.DATABASE_PORT || '5433', 10),
     user: process.env.DATABASE_USER || 'lppm',
     password: process.env.DATABASE_PASSWORD || 'lppm_secret',
     database: process.env.DATABASE_NAME || 'lppm_press',
@@ -150,6 +151,9 @@ async function migrate() {
       is_resolved BOOLEAN DEFAULT FALSE,
       created_at TIMESTAMPTZ DEFAULT NOW()
     );
+
+    CREATE INDEX IF NOT EXISTS idx_books_created_at ON books(created_at);
+    CREATE INDEX IF NOT EXISTS idx_history_created_at ON book_status_history(created_at);
   `);
 
   console.log('Migrasi selesai: seluruh tabel & enum terverifikasi.');

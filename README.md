@@ -29,7 +29,7 @@ cp .env.example .env            # sesuaikan kredensial DB
 npm install
 npm run migrate                 # buat enum + tabel (idempotent)
 npm run seed                    # data demo (akun + naskah berbagai status)
-npm run start:dev               # http://localhost:4000/api/v1
+npm run start:dev               # http://localhost:4001/api/v1
 
 # 3. Frontend (terminal baru)
 cd frontend

@@ -79,6 +79,7 @@ export class PaymentsController {
     if (!fs.existsSync(absolutePath) || !path.resolve(absolutePath).startsWith(path.resolve(UPLOAD_ROOT()))) {
       throw new BadRequestException('Berkas tidak tersedia');
     }
+    res.set('Cache-Control', 'no-store');
     res.download(absolutePath, fileName);
   }
 }

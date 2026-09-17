@@ -27,6 +27,11 @@ function decodeRole(token: string): { role: Role; real_role: Role; impersonating
   return { role: payload.role, real_role: payload.real_role, impersonating: payload.impersonating };
 }
 
+function readCookie(name: string): string | null {
+  const match = document.cookie.split('; ').find((item) => item.startsWith(`${name}=`));
+  return match ? decodeURIComponent(match.slice(name.length + 1)) : null;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
@@ -36,60 +41,66 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [impersonating, setImpersonating] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const applyToken = useCallback((t: string, u: User) => {
-    const meta = decodeRole(t);
-    setToken(t); setUser(u); setRole(meta.role); setRealRole(meta.real_role); setImpersonating(meta.impersonating);
-    localStorage.setItem('lppm_token', t);
-    document.cookie = `lppm_role=${meta.role}; path=/; max-age=86400; SameSite=Lax`;
+  const applySession = useCallback((u: User, effectiveRole: Role, originalRole: Role, isImpersonating: boolean) => {
+    setToken('cookie-session'); setUser(u); setRole(effectiveRole); setRealRole(originalRole); setImpersonating(isImpersonating);
+    document.cookie = `lppm_role=${effectiveRole}; path=/; max-age=86400; SameSite=Lax`;
+    document.cookie = `lppm_real_role=${originalRole}; path=/; max-age=86400; SameSite=Lax`;
+    document.cookie = `lppm_impersonating=${isImpersonating ? '1' : '0'}; path=/; max-age=86400; SameSite=Lax`;
     document.cookie = `lppm_auth=1; path=/; max-age=86400; SameSite=Lax`;
   }, []);
 
   useEffect(() => {
-    const t = localStorage.getItem('lppm_token');
-    if (!t) { setLoading(false); return; }
-    api.get<User>('/users/me', t)
-      .then((u) => applyToken(t, u))
-      .catch(() => localStorage.removeItem('lppm_token'))
+    localStorage.removeItem('lppm_token');
+    if (readCookie('lppm_auth') !== '1') { setLoading(false); return; }
+    api.get<User>('/users/me')
+      .then((u) => {
+        const effectiveRole = (readCookie('lppm_role') || u.role) as Role;
+        const originalRole = (readCookie('lppm_real_role') || u.role) as Role;
+        applySession(u, effectiveRole, originalRole, readCookie('lppm_impersonating') === '1');
+      })
+      .catch(() => {
+        document.cookie = 'lppm_auth=; path=/; max-age=0';
+        setUser(null);
+      })
       .finally(() => setLoading(false));
-  }, [applyToken]);
+  }, [applySession]);
 
   const login = useCallback(async (email: string, password: string) => {
     const res = await api.post<{ access_token: string; user: User; role: Role }>('/auth/login', { email, password });
-    applyToken(res.access_token, res.user);
+    applySession(res.user, res.role, res.role, false);
     return res.role;
-  }, [applyToken]);
+  }, [applySession]);
 
   const register = useCallback(async (data: Record<string, string>) => {
     await api.post('/auth/register', data);
   }, []);
 
   const logout = useCallback(() => {
-    localStorage.removeItem('lppm_token');
+    void api.post('/auth/logout').catch(() => undefined);
     document.cookie = 'lppm_role=; path=/; max-age=0';
     document.cookie = 'lppm_auth=; path=/; max-age=0';
+    document.cookie = 'lppm_real_role=; path=/; max-age=0';
+    document.cookie = 'lppm_impersonating=; path=/; max-age=0';
     setUser(null); setToken(null); setRole(null); setRealRole(null); setImpersonating(false);
     router.push('/');
   }, [router]);
 
   const impersonate = useCallback(async (target: Role) => {
-    if (!token) return;
-    const res = await api.post<{ impersonation_token: string }>('/auth/impersonate', { target_role: target }, token);
-    const u = await api.get<User>('/users/me', res.impersonation_token);
-    applyToken(res.impersonation_token, u);
+    const res = await api.post<{ impersonation_token: string; simulated_role: Role }>('/auth/impersonate', { target_role: target });
+    const u = await api.get<User>('/users/me');
+    applySession(u, res.simulated_role, 'LPPM', true);
     router.push('/dashboard');
-  }, [token, applyToken, router]);
+  }, [applySession, router]);
 
   const stopImpersonation = useCallback(async () => {
-    if (!token) return;
-    const res = await api.post<{ access_token: string; user: User }>('/auth/stop-impersonation', {}, token);
-    applyToken(res.access_token, res.user);
+    const res = await api.post<{ access_token: string; user: User }>('/auth/stop-impersonation');
+    applySession(res.user, 'LPPM', 'LPPM', false);
     router.push('/dashboard');
-  }, [token, applyToken, router]);
+  }, [applySession, router]);
 
   const refreshUser = useCallback(async () => {
-    if (!token) return;
-    setUser(await api.get<User>('/users/me', token));
-  }, [token]);
+    setUser(await api.get<User>('/users/me'));
+  }, []);
 
   return (
     <AuthContext.Provider value={{ user, token, role, realRole, impersonating, loading, login, register, logout, impersonate, stopImpersonation, refreshUser }}>

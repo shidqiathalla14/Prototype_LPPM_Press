@@ -2,14 +2,28 @@ import 'reflect-metadata';
 import { ValidationPipe, BadRequestException } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   app.setGlobalPrefix('api/v1');
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle('LPPM Press API')
+    .setDescription('Dokumentasi API Sistem Informasi Pelayanan Penerbitan Buku LPPM Press UPNVJ.')
+    .setVersion('1.0')
+    .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'access-token')
+    .build();
+  const swaggerDocument = SwaggerModule.createDocument(app, swaggerConfig);
+  SwaggerModule.setup('docs', app, swaggerDocument, {
+    customSiteTitle: 'LPPM Press API Docs',
+  });
+  // CORS: default reflektif (development). Di produksi batasi via CORS_ORIGIN (daftar origin dipisah koma).
   app.enableCors({
-    origin: true,
+    origin: process.env.CORS_ORIGIN
+      ? process.env.CORS_ORIGIN.split(',').map((o) => o.trim()).filter(Boolean)
+      : true,
     credentials: true,
   });
   app.useGlobalPipes(

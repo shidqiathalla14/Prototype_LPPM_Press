@@ -121,7 +121,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
   const nav = NAV[role];
 
   const sidebar = (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full min-h-0 flex-col">
       <Link href="/dashboard" className="flex items-center gap-2.5 border-b border-zinc-200 px-5 py-4 dark:border-zinc-800">
         <Image src="/logo-upnvj.png" alt="Logo UPN Veteran Jakarta" width={32} height={32} className="h-8 w-8 object-contain" />
         <span>
@@ -129,7 +129,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
           <span className="block text-[11px] leading-tight text-zinc-400">{brand.institution}</span>
         </span>
       </Link>
-      <nav className="flex-1 space-y-0.5 overflow-y-auto p-3" aria-label="Navigasi utama">
+      <nav className="min-h-0 flex-1 space-y-0.5 overflow-y-auto p-3" aria-label="Navigasi utama">
         {nav.map((item) => {
           const active = pathname === item.href || pathname.startsWith(item.href + '/');
           const Icon = item.icon;
@@ -173,7 +173,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
       {mobileOpen && (
         <div className="fixed inset-0 z-[80] lg:hidden">
           <div className="absolute inset-0 bg-zinc-950/50" onClick={() => setMobileOpen(false)} />
-          <aside className="absolute left-0 top-0 h-full w-64 border-r border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+          <aside className="absolute left-0 top-0 flex h-full w-64 overflow-hidden border-r border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
             <div className="flex justify-end p-2">
               <button aria-label="Tutup menu" onClick={() => setMobileOpen(false)} className="rounded-lg p-2 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800">
                 <X className="h-4 w-4" strokeWidth={1.75} />

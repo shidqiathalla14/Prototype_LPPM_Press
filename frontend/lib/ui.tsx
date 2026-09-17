@@ -6,7 +6,7 @@ import { BookStatus, STATUS_BADGE_CLASS, STATUS_LABEL } from './types';
 
 export function StatusBadge({ status }: { status: BookStatus }) {
   return (
-    <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${STATUS_BADGE_CLASS[status]}`}>
+    <span className={`inline-flex min-h-6 items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${STATUS_BADGE_CLASS[status]}`}>
       {STATUS_LABEL[status]}
     </span>
   );

@@ -54,18 +54,17 @@ export default function DashboardPage() {
             )}
           </div>
 
-          <div className="mt-6 rounded-xl border border-zinc-200 bg-white p-5 shadow-subtle dark:border-zinc-800 dark:bg-zinc-900">
-            <h2 className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">Aksi Cepat</h2>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {role === 'AUTHOR' && (
-                <QuickLink href="/pengajuan/tambah" label="Ajukan Naskah Baru" />
-              )}
-              {role === 'AUTHOR' && <QuickLink href="/pengajuan" label="Lihat Pengajuan Saya" />}
-              {(role === 'REVIEWER' || role === 'EDITOR') && <QuickLink href="/booklist" label="Buka Booklist Tugas" />}
-              {role === 'LPPM' && <QuickLink href="/manajemen-buku" label="Kelola Seluruh Naskah" />}
-              <QuickLink href="/profile" label="Profil & Kontribusi" />
+          {role !== 'LPPM' && (
+            <div className="mt-6 rounded-xl border border-zinc-200 bg-white p-5 shadow-subtle dark:border-zinc-800 dark:bg-zinc-900">
+              <h2 className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">Aksi Cepat</h2>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {role === 'AUTHOR' && <QuickLink href="/pengajuan/tambah" label="Ajukan Naskah Baru" />}
+                {role === 'AUTHOR' && <QuickLink href="/pengajuan" label="Lihat Pengajuan Saya" />}
+                {(role === 'REVIEWER' || role === 'EDITOR') && <QuickLink href="/booklist" label="Buka Booklist Tugas" />}
+                <QuickLink href="/profile" label="Profil & Kontribusi" />
+              </div>
             </div>
-          </div>
+          )}
 
           <section className="mt-6 rounded-xl border border-zinc-200 bg-white shadow-subtle dark:border-zinc-800 dark:bg-zinc-900" aria-label="Notifikasi perubahan status">
             <div className="flex items-center gap-2 border-b border-zinc-100 px-5 py-3.5 dark:border-zinc-800">
